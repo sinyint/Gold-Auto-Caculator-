@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ရွှေအလေးချိန် Auto တွက်စက်</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #090d16;
+            color: #e2e8f0;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px 12px;
+            gap: 8px;
+        }
+
+        /* ထိပ်ဆုံး ခလုတ်များ */
+        .top-controls {
+            flex-shrink: 0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-add { 
+            flex: 3;
+            padding: 8px 10px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 15px; 
+            background: linear-gradient(135deg, #f59e0b, #d97706); 
+            color: #0f172a; 
+            box-shadow: 0 3px 6px rgba(245, 158, 11, 0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-clear-all {
+            flex: 1;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            background: linear-gradient(135deg, #ef4444, #dc2626); 
+            color: #fff;
+            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.2);
+            transition: all 0.2s;
+        }
+
+        /* ရလဒ်ပြကွက်များ (စာသားများဖယ်ရှားပြီး အရွယ်အစားသေးငယ်အောင် ပြင်ဆင်ထားသည်) */
+        .middle-controls {
+            flex-shrink: 0;
+        }
+
+        .results-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        .result-card { 
+            flex: 1;
+            background: linear-gradient(145deg, #162032, #101726); 
+            padding: 6px 8px; 
+            border-radius: 8px; 
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .result-card.gold-card { border-left: 4px solid #f59e0b; }
+        .result-card.gram-card { border-left: 4px solid #10b981; }
+
+        .result-val { font-size: 13px; color: #fbbf24; font-weight: bold; }
+        .gram-val { font-size: 13px; color: #34d399; font-weight: bold; }
+
+        .negative-mode .result-val, 
+        .negative-mode .gram-val { color: #f87171 !important; }
+        .negative-mode.gold-card, .negative-mode.gram-card { border-left-color: #ef4444 !important; }
+
+        /* အချက်အလက်ထည့်သွင်းရန် စာရင်းဇယားနေရာ */
+        .list-container {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 2px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .row-item { 
+            background: #131c2e; 
+            padding: 6px 8px; 
+            border-radius: 10px; 
+            margin-bottom: 6px; 
+            display: flex; 
+            gap: 6px; 
+            align-items: center; 
+            border-left: 4px solid #10b981;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-left-width: 4px;
+        }
+
+        .row-item.minus-mode {
+            border-left-color: #ef4444 !important;
+            background: #231118;
+        }
+
+        .row-number { 
+            font-weight: bold; 
+            color: #f59e0b; 
+            min-width: 26px; 
+            font-size: 12px; 
+            text-align: right; 
+            padding-right: 2px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        
+        input, select { 
+            width: 100%; 
+            padding: 7px 2px; 
+            border-radius: 7px; 
+            border: 1px solid #283548; 
+            background: #090d16; 
+            color: #fff; 
+            text-align: center; 
+            font-size: 13px; 
+            font-weight: bold;
+            outline: none;
+            min-width: 0;
+            -webkit-appearance: none;
+        }
+
+        input:focus { border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15); }
+
+        .op { 
+            font-weight: 900; 
+            cursor: pointer;
+            color: #10b981;
+            font-size: 14px;
+            background-color: #090d16;
+            flex-shrink: 0;
+            text-align-last: center;
+        }
+
+        .minus-mode .op { 
+            color: #ef4444 !important; 
+            background-color: #3b1114;
+            border-color: #ef4444;
+        }
+
+        .btn-del { 
+            background: #1e293b; 
+            color: #ef4444; 
+            border: 1px solid #ef4444; 
+            padding: 5px 8px; 
+            border-radius: 7px; 
+            font-size: 12px; 
+            font-weight: bold;
+            cursor: pointer; 
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- ၁။ ထိပ်ဆုံး ခလုတ်များ -->
+        <div class="top-controls">
+            <div class="btn-group">
+                <button class="btn-add" id="btnAdd" type="button">➕</button>
+                <button class="btn-clear-all" id="btnClearAll" type="button">🗑️</button>
+            </div>
+        </div>
+
+        <!-- ၂။ ရလဒ်ပြကွက်များ (စာသားများဖယ်ရှားပြီး) -->
+        <div class="middle-controls">
+            <div class="results-container">
+                <div class="result-card gold-card" id="goldCard">
+                    <div class="result-val" id="totalResult">၀ကျပ် ၀ပဲ ၀ရွေး</div>
+                </div>
+
+                <div class="result-card gram-card" id="gramCard">
+                    <div class="gram-val" id="totalGram">0.000 g</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ၃။ အချက်အလက်ထည့်သွင်းရန် စာရင်းဇယား -->
+        <div class="list-container" id="itemList"></div>
+    </div>
+
+    <script>
+        var rowCount = 0;
+
+        window.onload = function() {
+            addRow();
+        };
+
+        document.getElementById('btnAdd').onclick = function() {
+            addRow();
+        };
+
+        document.getElementById('btnClearAll').onclick = function() {
+            var listContainer = document.getElementById('itemList');
+            listContainer.innerHTML = '';
+            rowCount = 0;
+            addRow();
+        };
+
+        function addRow() {
+            rowCount++;
+            var div = document.createElement('div');
+            div.className = 'row-item';
+            div.id = 'row-' + rowCount;
+            
+            var rowId = rowCount;
+            var isFirst = (document.querySelectorAll('.row-item').length === 0);
+
+            var numSpan = document.createElement('span');
+            numSpan.className = 'row-number';
+            numSpan.innerText = rowId + '။';
+
+            var select = document.createElement('select');
+            select.className = 'op';
+            select.style.width = '44px';
+            select.innerHTML = '<option value="+">＋</option><option value="-">－</option>';
+            select.onchange = function() {
+                updateRowStyle(rowId);
+                autoCalculate();
+            };
+
+            var inputK = document.createElement('input');
+            inputK.type = 'number';
+            inputK.className = 'k';
+            inputK.placeholder = 'ကျပ်';
+            inputK.onkeydown = function(e) { if(e.key === '.' || e.key === ',' || e.key === 'e') e.preventDefault(); };
+            inputK.oninput = function() { 
+                this.value = this.value.replace(/[^0-9]/g, '');
+                autoCalculate(); 
+            };
+
+            var inputP = document.createElement('input');
+            inputP.type = 'number';
+            inputP.className = 'p';
+            inputP.placeholder = 'ပဲ';
+            inputP.onkeydown = function(e) { if(e.key === '.' || e.key === ',' || e.key === 'e') e.preventDefault(); };
+            inputP.oninput = function() { 
+                this.value = this.value.replace(/[^0-9]/g, '');
+                autoCalculate(); 
+            };
+
+            var inputY = document.createElement('input');
+            inputY.type = 'number';
+            inputY.className = 'y';
+            inputY.placeholder = 'ရွေး';
+            inputY.oninput = function() { autoCalculate(); };
+
+            div.appendChild(numSpan);
+            div.appendChild(select);
+            div.appendChild(inputK);
+            div.appendChild(inputP);
+            div.appendChild(inputY);
+
+            if (!isFirst) {
+                var btnDel = document.createElement('button');
+                btnDel.type = 'button';
+                btnDel.className = 'btn-del';
+                btnDel.innerText = '✕';
+                btnDel.onclick = function() { removeRow(rowId); };
+                div.appendChild(btnDel);
+            } else {
+                var dummy = document.createElement('span');
+                dummy.style.width = '24px';
+                div.appendChild(dummy);
+            }
+
+            var listContainer = document.getElementById('itemList');
+            listContainer.appendChild(div);
+            listContainer.scrollTop = listContainer.scrollHeight;
+
+            autoCalculate();
+        }
+
+        function updateRowStyle(id) {
+            var row = document.getElementById('row-' + id);
+            if (row) {
+                var op = row.querySelector('.op').value;
+                if (op === '-') {
+                    row.classList.add('minus-mode');
+                } else {
+                    row.classList.remove('minus-mode');
+                }
+            }
+        }
+
+        function removeRow(id) {
+            var element = document.getElementById('row-' + id);
+            if (element) {
+                element.parentNode.removeChild(element);
+                autoCalculate();
+            }
+        }
+
+        function autoCalculate() {
+            var totalYew3 = 0;
+            var rows = document.querySelectorAll('.row-item');
+
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var k = parseFloat(row.querySelector('.k').value) || 0;
+                var p = parseFloat(row.querySelector('.p').value) || 0;
+                var y = parseFloat(row.querySelector('.y').value) || 0;
+                
+                var currentYew3 = (k * 128) + (p * 8) + y;
+                var opSelect = row.querySelector('.op');
+                var op = opSelect ? opSelect.value : '+';
+
+                if (op === '-') {
+                    totalYew3 -= currentYew3;
+                } else {
+                    totalYew3 += currentYew3;
+                }
+            }
+
+            var isNegative = totalYew3 < 0;
+            var absYew3 = Math.abs(totalYew3);
+
+            var finalK = Math.floor(absYew3 / 128);
+            var remYew3 = absYew3 % 128;
+            var finalP = Math.floor(remYew3 / 8);
+            var finalY = remYew3 % 8;
+
+            var roundedY = Math.round(finalY * 100) / 100;
+            var totalGrams = (absYew3 * (16.605 / 128)).toFixed(3);
+
+            var goldCard = document.getElementById('goldCard');
+            var gramCard = document.getElementById('gramCard');
+
+            if (isNegative) {
+                goldCard.classList.add('negative-mode');
+                gramCard.classList.add('negative-mode');
+                document.getElementById('totalResult').innerText = '-' + finalK + 'ကျပ် ' + finalP + 'ပဲ ' + roundedY + 'ရွေး';
+                document.getElementById('totalGram').innerText = '-' + totalGrams + ' g';
+            } else {
+                goldCard.classList.remove('negative-mode');
+                gramCard.classList.remove('negative-mode');
+                document.getElementById('totalResult').innerText = finalK + 'ကျပ် ' + finalP + 'ပဲ ' + roundedY + 'ရွေး';
+                document.getElementById('totalGram').innerText = totalGrams + ' g';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "SY Gold",
+  "short_name": "SY Gold",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/512/gold-bars.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
